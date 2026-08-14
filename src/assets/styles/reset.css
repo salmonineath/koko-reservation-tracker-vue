@@ -1,0 +1,23 @@
+/* Small app-level base on top of Tailwind's preflight reset. */
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Thin, unobtrusive scrollbars to match the dashboard's tidy surfaces. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-chart-gray);
+  border-radius: 9999px;
+}

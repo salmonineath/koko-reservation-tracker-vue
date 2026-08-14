@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Local env config (not secret here — just the API base URL — but this is
+# where a future secret-ish value would land, so keep the habit).
+.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
