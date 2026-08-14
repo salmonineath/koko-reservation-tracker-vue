@@ -21,31 +21,6 @@ export interface DonutSegment {
   color: string
 }
 
-export interface TrendPoint {
-  thisPeriod: number
-  lastPeriod: number
-}
-
-export interface PlatformReach {
-  label: string
-  value: string
-  percentOfMax: number
-  color: string
-}
-
-export type ContentPlatform = 'Instagram' | 'Facebook' | 'TikTok'
-
-export interface ContentRow {
-  id: number
-  title: string
-  platform: ContentPlatform
-  type: string
-  reach: string
-  interactions: string
-  views: string
-  date: string
-}
-
 export interface DashboardMonthData {
   key: string
   label: string
@@ -53,8 +28,4 @@ export interface DashboardMonthData {
   overview: OverviewStat[]
   reservationsBySource: DonutSegment[]
   reservationStatus: DonutSegment[]
-  trendAxisLabels: string[]
-  trend: TrendPoint[]
-  topPlatforms: PlatformReach[]
-  topContent: ContentRow[]
 }

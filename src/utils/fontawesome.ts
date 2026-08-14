@@ -5,9 +5,7 @@ import '@fortawesome/fontawesome-svg-core/styles.css'
 import {
   faHouse,
   faCalendarDays,
-  faShareNodes,
   faPenToSquare,
-  faChartColumn,
   faGear,
   faChevronDown,
   faXmark,
@@ -28,9 +26,7 @@ config.autoAddCss = false
 library.add(
   faHouse,
   faCalendarDays,
-  faShareNodes,
   faPenToSquare,
-  faChartColumn,
   faGear,
   faChevronDown,
   faXmark,

@@ -18,7 +18,7 @@ export interface ReservationFiltersValue {
   dateTo: string
 }
 
-const model = defineModel<ReservationFiltersValue>({ required: true })
+let model = defineModel<ReservationFiltersValue>({ required: true })
 
 const SOURCE_OPTIONS = (Object.keys(SOURCE_LABELS) as ReservationSource[]).map((value) => ({
   value,
@@ -34,7 +34,14 @@ const hasActiveFilters = computed(
 )
 
 function clear() {
-  model.value = { search: '', source: '', status: '', dateFrom: '', dateTo: '' }
+  // Mutate properties in place rather than reassigning `model.value` itself —
+  // the latter requires the parent's v-model target to be reassignable,
+  // which is why the compiler was quietly turning `const filters` into `let`.
+  model.value.search = ''
+  model.value.source = ''
+  model.value.status = ''
+  model.value.dateFrom = ''
+  model.value.dateTo = ''
 }
 </script>
 

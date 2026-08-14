@@ -5,9 +5,6 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   faHouse,
   faCalendarDays,
-  faShareNodes,
-  faPenToSquare,
-  faChartColumn,
   faGear,
   faChevronDown,
   type IconDefinition,
@@ -22,12 +19,12 @@ interface NavItem {
   icon: IconDefinition
 }
 
+// Social Media / Content / Reports removed — the backend has no data model
+// for any of that yet (see doc/FRONTEND_API_SCOPE.md); they shouldn't be
+// selectable nav items even as empty placeholder pages this release.
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: faHouse },
   { to: '/reservations', label: 'Reservations', icon: faCalendarDays },
-  { to: '/social-media', label: 'Social Media', icon: faShareNodes },
-  { to: '/content', label: 'Content', icon: faPenToSquare },
-  { to: '/reports', label: 'Reports', icon: faChartColumn },
   { to: '/settings', label: 'Settings', icon: faGear },
 ]
 

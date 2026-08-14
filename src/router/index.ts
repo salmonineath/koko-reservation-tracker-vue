@@ -53,24 +53,6 @@ const router = createRouter({
           component: () => import('@/features/reservations/views/ReservationEditView.vue'),
         },
         {
-          path: 'social-media',
-          name: 'social-media',
-          component: () => import('@/components/common/ComingSoonView.vue'),
-          props: { title: 'Social Media' },
-        },
-        {
-          path: 'content',
-          name: 'content',
-          component: () => import('@/components/common/ComingSoonView.vue'),
-          props: { title: 'Content' },
-        },
-        {
-          path: 'reports',
-          name: 'reports',
-          component: () => import('@/components/common/ComingSoonView.vue'),
-          props: { title: 'Reports' },
-        },
-        {
           path: 'settings',
           name: 'settings',
           component: () => import('@/components/common/ComingSoonView.vue'),
