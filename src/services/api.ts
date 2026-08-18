@@ -3,14 +3,18 @@
 // in the codebase should call `fetch` directly against the API.
 //
 // Token storage model (see doc/FRONTEND auth notes):
-//   - Refresh token: HttpOnly `refreshToken` cookie, scoped to /api/auth by
-//     the backend. JS never reads it — the browser attaches it automatically
+//   - Both the access token and the refresh token are HttpOnly cookies set
+//     by the backend (`accessToken` scoped to `/`, `refreshToken` scoped to
+//     `/api/auth`). JS never reads or stores either one - not in a module
+//     variable, not in Pinia, not in localStorage/sessionStorage. The
+//     browser attaches whichever cookie a request needs automatically,
 //     because every request below sends `credentials: 'include'`.
-//   - Access token: kept ONLY in the module-level `accessToken` variable
-//     below (i.e. application memory). Never written to localStorage,
-//     sessionStorage, or logged to the console. It's gone on every full page
-//     reload by design — that's what session restoration (POST /auth/refresh
-//     on boot) is for.
+//   - This means a full page reload (F5) does NOT need a POST /auth/refresh
+//     just to "restore" a session - the accessToken cookie survives the
+//     reload on its own. Session restoration is just making a normal
+//     protected request (see authStore.checkSession); refresh only fires
+//     reactively, from the 401 handling below, when the access token has
+//     actually expired.
 import type { AuthSession } from '@/features/auth/types'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -22,16 +26,6 @@ export class ApiError extends Error {
     this.name = 'ApiError'
     this.status = status
   }
-}
-
-let accessToken: string | null = null
-
-export function setAccessToken(token: string | null) {
-  accessToken = token
-}
-
-export function getAccessToken(): string | null {
-  return accessToken
 }
 
 // The auth store registers this once so this generic client can react to an
@@ -52,14 +46,20 @@ async function rawRequest(path: string, options: RequestInit = {}): Promise<Resp
   if (options.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
-  if (accessToken) {
-    headers.set('Authorization', `Bearer ${accessToken}`)
+  // Required by requireAuth's CSRF check: since the access token rides in an
+  // HttpOnly cookie the browser attaches automatically, mutating requests
+  // must prove they're an XHR, not a form/plain-link submission that just
+  // happened to carry the cookie along. GETs are unaffected server-side, so
+  // no need to special-case them here.
+  const method = (options.method ?? 'GET').toUpperCase()
+  if (method !== 'GET' && method !== 'HEAD') {
+    headers.set('X-Requested-With', 'XMLHttpRequest')
   }
 
   return fetch(`${API_URL}${path}`, {
     ...options,
     headers,
-    credentials: 'include', // let the browser attach the HttpOnly refresh cookie
+    credentials: 'include', // let the browser attach the HttpOnly access/refresh cookies
   })
 }
 
@@ -73,15 +73,12 @@ export function performRefresh(): Promise<AuthSession | null> {
     refreshPromise = (async () => {
       try {
         const res = await rawRequest('/auth/refresh', { method: 'POST' })
-        if (!res.ok) {
-          setAccessToken(null)
-          return null
-        }
-        const session = (await res.json()) as AuthSession
-        setAccessToken(session.accessToken)
-        return session
+        if (!res.ok) return null
+        // Backend also rotates the accessToken/refreshToken cookies via
+        // Set-Cookie here - nothing for the client to do with them. The
+        // body is still returned for callers that want the refreshed user.
+        return (await res.json()) as AuthSession
       } catch {
-        setAccessToken(null)
         return null
       } finally {
         refreshPromise = null

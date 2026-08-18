@@ -1,8 +1,14 @@
-// Thin wrappers over the generic client for the 3 endpoints the backend
-// actually exposes (see koko-reservation-trackera-express src/routes/auth-routes.ts).
-// No register/me endpoints exist — don't add calls for them.
-import { apiRequest, performRefresh, ApiError } from '@/services/api'
-import type { AuthSession } from '../types'
+// Thin wrappers over the generic client for the endpoints the backend
+// actually exposes (see koko-reservation-trackera-express src/routes/auth-routes.ts
+// and src/routes/me-routes.ts). No register endpoint exists — don't add a
+// call for it.
+//
+// There is no `refresh()` wrapper here on purpose: POST /auth/refresh is only
+// ever called from inside services/api.ts's own 401 handling (via
+// performRefresh), never explicitly by feature code — see authStore.checkSession
+// for the boot-time equivalent, which calls getMe() instead.
+import { apiRequest } from '@/services/api'
+import type { AuthSession, AuthUser } from '../types'
 
 export function login(email: string, password: string): Promise<AuthSession> {
   return apiRequest<AuthSession>('/auth/login', {
@@ -11,15 +17,26 @@ export function login(email: string, password: string): Promise<AuthSession> {
   })
 }
 
-// Delegates to the same shared/deduped refresh call used internally by
-// apiRequest's 401 handling, so a boot-time check and a mid-session
-// transparent refresh can never race into two separate network calls.
-export async function refresh(): Promise<AuthSession> {
-  const session = await performRefresh()
-  if (!session) throw new ApiError(401, 'Session expired')
-  return session
+// A normal protected request, not a special auth endpoint - used by
+// authStore.checkSession to answer "am I still logged in?" without forcing a
+// refresh. Relies entirely on apiRequest's existing 401 -> refresh -> retry
+// handling to renew an expired access token transparently.
+export function getMe(): Promise<{ user: AuthUser }> {
+  return apiRequest<{ user: AuthUser }>('/me')
 }
 
 export function logout(): Promise<void> {
   return apiRequest<void>('/auth/logout', { method: 'POST' })
+}
+
+// On success the backend revokes every refresh token for this account and
+// clears the accessToken/refreshToken cookies on this response too (see
+// user.controller.ts's changePasswordController) - the caller is expected to
+// treat this exactly like a logout (SettingsView does) rather than staying
+// on the page as if nothing happened.
+export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  return apiRequest<void>('/me/password', {
+    method: 'PATCH',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
 }

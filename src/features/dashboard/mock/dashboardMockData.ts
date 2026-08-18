@@ -4,7 +4,6 @@ import type { DashboardMonthData } from '../types'
 const NAVY = 'var(--color-chart-navy)'
 const RED = 'var(--color-chart-red)'
 const SLATE = 'var(--color-chart-slate)'
-const GRAY = 'var(--color-chart-gray)'
 const MIST = 'var(--color-chart-mist)'
 
 // This is reservation data only — the backend today is Auth + Reservations
@@ -29,9 +28,7 @@ export const DASHBOARD_MONTHS: DashboardMonthData[] = [
     reservationsBySource: [
       { label: 'Instagram', sourceKey: 'INSTAGRAM', count: 42, percent: 29, color: RED },
       { label: 'Facebook', sourceKey: 'FACEBOOK', count: 40, percent: 28, color: NAVY },
-      { label: 'Phone Call', sourceKey: 'PHONE_CALL', count: 30, percent: 21, color: SLATE },
-      { label: 'Walk-in', sourceKey: 'WALK_IN', count: 21, percent: 15, color: GRAY },
-      { label: 'Others', count: 10, percent: 7, color: MIST },
+      { label: 'Others', count: 61, percent: 43, color: MIST },
     ],
     reservationStatus: [
       { label: 'Completed', statusKey: 'COMPLETED', count: 102, percent: 71, color: NAVY },
@@ -52,9 +49,7 @@ export const DASHBOARD_MONTHS: DashboardMonthData[] = [
     reservationsBySource: [
       { label: 'Instagram', sourceKey: 'INSTAGRAM', count: 50, percent: 32, color: RED },
       { label: 'Facebook', sourceKey: 'FACEBOOK', count: 48, percent: 31, color: NAVY },
-      { label: 'Phone Call', sourceKey: 'PHONE_CALL', count: 28, percent: 18, color: SLATE },
-      { label: 'Walk-in', sourceKey: 'WALK_IN', count: 20, percent: 13, color: GRAY },
-      { label: 'Others', count: 10, percent: 6, color: MIST },
+      { label: 'Others', count: 58, percent: 37, color: MIST },
     ],
     reservationStatus: [
       { label: 'Completed', statusKey: 'COMPLETED', count: 86, percent: 55, color: NAVY },
@@ -76,9 +71,7 @@ export const DASHBOARD_MONTHS: DashboardMonthData[] = [
     reservationsBySource: [
       { label: 'Instagram', sourceKey: 'INSTAGRAM', count: 45, percent: 35, color: RED },
       { label: 'Facebook', sourceKey: 'FACEBOOK', count: 38, percent: 30, color: NAVY },
-      { label: 'Phone Call', sourceKey: 'PHONE_CALL', count: 20, percent: 16, color: SLATE },
-      { label: 'Walk-in', sourceKey: 'WALK_IN', count: 15, percent: 12, color: GRAY },
-      { label: 'Others', count: 10, percent: 7, color: MIST },
+      { label: 'Others', count: 45, percent: 35, color: MIST },
     ],
     reservationStatus: [
       { label: 'Completed', statusKey: 'COMPLETED', count: 96, percent: 75, color: NAVY },
@@ -99,9 +92,7 @@ export const DASHBOARD_MONTHS: DashboardMonthData[] = [
     reservationsBySource: [
       { label: 'Instagram', sourceKey: 'INSTAGRAM', count: 50, percent: 35, color: RED },
       { label: 'Facebook', sourceKey: 'FACEBOOK', count: 42, percent: 30, color: NAVY },
-      { label: 'Phone Call', sourceKey: 'PHONE_CALL', count: 24, percent: 17, color: SLATE },
-      { label: 'Walk-in', sourceKey: 'WALK_IN', count: 17, percent: 12, color: GRAY },
-      { label: 'Others', count: 8, percent: 6, color: MIST },
+      { label: 'Others', count: 49, percent: 35, color: MIST },
     ],
     reservationStatus: [
       { label: 'Completed', statusKey: 'COMPLETED', count: 108, percent: 77, color: NAVY },

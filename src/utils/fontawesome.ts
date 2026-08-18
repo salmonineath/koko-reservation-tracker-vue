@@ -18,6 +18,15 @@ import {
   faTrash,
   faPlus,
   faArrowLeft,
+  faCircleUser,
+  faUser,
+  faShieldHalved,
+  faDownload,
+  faArrowRight,
+  faChevronLeft,
+  faChevronRight,
+  faCircleCheck,
+  faCircleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
 
 // We import the CSS ourselves above, so FA shouldn't inject its own <style> tag.
@@ -39,4 +48,13 @@ library.add(
   faTrash,
   faPlus,
   faArrowLeft,
+  faCircleUser,
+  faUser,
+  faShieldHalved,
+  faDownload,
+  faArrowRight,
+  faChevronLeft,
+  faChevronRight,
+  faCircleCheck,
+  faCircleExclamation,
 )

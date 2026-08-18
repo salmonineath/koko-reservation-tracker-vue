@@ -20,6 +20,17 @@ export function listReservations(query: ListReservationsQuery = {}): Promise<Pag
   return apiRequest<PaginatedReservations>(`/reservations?${buildQuery(query)}`)
 }
 
+// Cheap count-only query for the stats cards / export button — the backend
+// already returns `pagination.total` as the full matching row count
+// regardless of `limit`, so limit:1 gets the number without fetching (and
+// discarding) real rows. There's no dedicated aggregate/count endpoint.
+export async function countReservations(
+  query: Omit<ListReservationsQuery, 'page' | 'limit'> = {},
+): Promise<number> {
+  const { pagination } = await listReservations({ ...query, page: 1, limit: 1 })
+  return pagination.total
+}
+
 export function getReservation(id: number): Promise<Reservation> {
   return apiRequest<Reservation>(`/reservations/${id}`)
 }

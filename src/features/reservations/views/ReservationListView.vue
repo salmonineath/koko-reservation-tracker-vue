@@ -1,21 +1,28 @@
 <!-- ReservationListView.vue — search/filter/paginate + delete. Create/View/Edit
      are separate routes (ReservationCreateView/DetailView/EditView). -->
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faDownload } from '@fortawesome/free-solid-svg-icons'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import AppModal from '@/components/common/AppModal.vue'
 import ReservationFilters, { type ReservationFiltersValue } from '../components/ReservationFilters.vue'
 import ReservationTable from '../components/ReservationTable.vue'
-import { deleteReservation, listReservations } from '../services/reservationService'
+import ReservationStatsCards, { type ReservationStats } from '../components/ReservationStatsCards.vue'
+import { countReservations, deleteReservation, listReservations } from '../services/reservationService'
+import { downloadReservationsCsv } from '../utils/reservationExport'
+import { formatDate } from '../utils/reservationFormatter'
 import type { Pagination, Reservation } from '../types'
 import { ApiError } from '@/services/api'
+import { useDateRangeFilterStore } from '@/stores/dateRangeFilterStore'
 
 const router = useRouter()
 
-const filters = reactive<ReservationFiltersValue>({ search: '', source: '', status: '', dateFrom: '', dateTo: '' })
+// The date range itself lives in the shared store (see DateRangeFilter.vue) -
+// search/source/status stay local, they're reservations-only concepts.
+const dateRange = useDateRangeFilterStore()
+const filters = reactive<ReservationFiltersValue>({ search: '', source: '', status: '' })
 const page = ref(1)
 const limit = ref(12)
 
@@ -36,8 +43,8 @@ async function load() {
       search: filters.search || undefined,
       source: filters.source || undefined,
       status: filters.status || undefined,
-      dateFrom: filters.dateFrom || undefined,
-      dateTo: filters.dateTo || undefined,
+      dateFrom: dateRange.dateFrom || undefined,
+      dateTo: dateRange.dateTo || undefined,
       page: page.value,
       limit: limit.value,
     })
@@ -51,7 +58,7 @@ async function load() {
 }
 
 // Filter/limit changes reset to page 1; page changes just reload.
-watch([() => filters.source, () => filters.status, () => filters.dateFrom, () => filters.dateTo, limit], () => {
+watch([() => filters.source, () => filters.status, () => dateRange.dateFrom, () => dateRange.dateTo, limit], () => {
   page.value = 1
   load()
 })
@@ -70,7 +77,81 @@ watch(
   },
 )
 
+// ---- Stats cards ----
+// Scoped to the date-range filter only (not source/status/search) - those
+// are exactly what the breakdown cards summarize, so filtering by status
+// would defeat the point of a "how many are Confirmed/Pending/Cancelled"
+// card. Real numbers throughout: `total`/`confirmed`/`pending`/`cancelled`
+// are cheap count-only requests (see countReservations); `totalGuests` has
+// no aggregate endpoint at all, so it's the one case that needs an actual
+// row fetch (capped at `total`, so it never asks for more than exists).
+const stats = ref<ReservationStats | null>(null)
+const dateRangeLabel = computed(() => {
+  if (dateRange.dateFrom && dateRange.dateTo) {
+    return `From ${formatDate(dateRange.dateFrom)} to ${formatDate(dateRange.dateTo)}`
+  }
+  if (dateRange.dateFrom) return `Since ${formatDate(dateRange.dateFrom)}`
+  if (dateRange.dateTo) return `Through ${formatDate(dateRange.dateTo)}`
+  return 'All reservations'
+})
+
+async function loadStats() {
+  const dateRangeQuery = { dateFrom: dateRange.dateFrom || undefined, dateTo: dateRange.dateTo || undefined }
+  try {
+    const [total, confirmed, pending, cancelled] = await Promise.all([
+      countReservations(dateRangeQuery),
+      countReservations({ ...dateRangeQuery, status: 'CONFIRMED' }),
+      countReservations({ ...dateRangeQuery, status: 'PENDING' }),
+      countReservations({ ...dateRangeQuery, status: 'CANCELLED' }),
+    ])
+    const totalGuests =
+      total === 0
+        ? 0
+        : (await listReservations({ ...dateRangeQuery, page: 1, limit: total })).data.reduce(
+            (sum, r) => sum + r.guests,
+            0,
+          )
+    stats.value = { total, confirmed, pending, cancelled, totalGuests }
+  } catch {
+    // Non-critical decoration above the table - fail quietly and just leave
+    // the cards showing "—" rather than piling another error banner on top
+    // of the table's own loadError.
+    stats.value = null
+  }
+}
+watch([() => dateRange.dateFrom, () => dateRange.dateTo], loadStats)
+
 load()
+loadStats()
+
+// ---- Export ----
+const isExporting = ref(false)
+const exportError = ref('')
+
+async function handleExport() {
+  isExporting.value = true
+  exportError.value = ''
+  try {
+    const query = {
+      search: filters.search || undefined,
+      source: filters.source || undefined,
+      status: filters.status || undefined,
+      dateFrom: dateRange.dateFrom || undefined,
+      dateTo: dateRange.dateTo || undefined,
+    }
+    const total = await countReservations(query)
+    if (total === 0) {
+      exportError.value = 'No reservations match the current filters.'
+      return
+    }
+    const { data } = await listReservations({ ...query, page: 1, limit: total })
+    downloadReservationsCsv(data)
+  } catch (err) {
+    exportError.value = err instanceof ApiError ? err.message : 'Unable to export reservations. Please try again.'
+  } finally {
+    isExporting.value = false
+  }
+}
 
 function requestDelete(reservation: Reservation) {
   deleteError.value = ''
@@ -90,6 +171,7 @@ async function confirmDelete() {
     } else {
       await load()
     }
+    loadStats()
   } catch (err) {
     deleteError.value = err instanceof ApiError ? err.message : 'Unable to delete this reservation. Please try again.'
   } finally {
@@ -102,10 +184,16 @@ async function confirmDelete() {
   <div class="flex min-h-0 flex-1 flex-col">
     <AppHeader title="Reservations">
       <template #actions>
-        <AppButton @click="router.push('/reservations/new')">
-          <FontAwesomeIcon :icon="faPlus" class="h-3.5 w-3.5" />
-          Add Reservation
-        </AppButton>
+        <div class="flex items-center gap-3">
+          <AppButton variant="secondary" :loading="isExporting" :disabled="isExporting" @click="handleExport">
+            <FontAwesomeIcon :icon="faDownload" class="h-3.5 w-3.5" />
+            {{ isExporting ? 'Exporting…' : 'Export' }}
+          </AppButton>
+          <AppButton @click="router.push('/reservations/new')">
+            <FontAwesomeIcon :icon="faPlus" class="h-3.5 w-3.5" />
+            Add Reservation
+          </AppButton>
+        </div>
       </template>
     </AppHeader>
 
@@ -113,6 +201,12 @@ async function confirmDelete() {
       <div class="rounded-xl border border-surface-border bg-surface-card p-4">
         <ReservationFilters v-model="filters" />
       </div>
+
+      <div v-if="exportError" class="rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3 text-sm text-brand-red">
+        {{ exportError }}
+      </div>
+
+      <ReservationStatsCards :stats="stats" :date-range-label="dateRangeLabel" />
 
       <div v-if="loadError" class="rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3 text-sm text-brand-red">
         {{ loadError }}

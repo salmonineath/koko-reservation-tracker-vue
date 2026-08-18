@@ -103,6 +103,7 @@ const pageNumbers = computed(() => {
       Showing {{ rangeStart }} to {{ rangeEnd }} of {{ pagination.total }} reservations
     </p>
     <div class="flex items-center gap-3">
+      <AppSelect v-model="limitModel" :options="LIMIT_OPTIONS" />
       <div class="flex items-center gap-1">
         <button
           type="button"
@@ -132,7 +133,6 @@ const pageNumbers = computed(() => {
           ›
         </button>
       </div>
-      <AppSelect v-model="limitModel" :options="LIMIT_OPTIONS" />
     </div>
   </div>
 </template>
