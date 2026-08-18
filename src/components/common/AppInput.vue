@@ -39,6 +39,9 @@ const id = `input-${Math.random().toString(36).slice(2, 9)}`
         :disabled="disabled"
         class="w-full min-w-0 text-sm text-text-heading placeholder:text-text-muted focus:outline-none disabled:cursor-not-allowed"
       />
+      <!-- Optional trailing slot (e.g. a show/hide toggle on a password field)
+           — empty by default, so every existing call site renders unchanged. -->
+      <slot name="trailing" />
     </div>
     <p v-if="error" class="mt-1.5 text-xs text-brand-red">{{ error }}</p>
   </div>

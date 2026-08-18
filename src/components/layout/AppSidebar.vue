@@ -25,7 +25,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: faHouse },
   { to: '/reservations', label: 'Reservations', icon: faCalendarDays },
-  { to: '/settings', label: 'Settings', icon: faGear },
+  { to: '/settings', label: 'System Setting', icon: faGear },
 ]
 
 const route = useRoute()
@@ -39,8 +39,14 @@ function isActive(to: string) {
   return route.path === to || route.path.startsWith(`${to}/`)
 }
 
-// Backend has no name/role field on User (see prisma schema) — just email.
-const initials = computed(() => (auth.user?.email ?? '?').slice(0, 2).toUpperCase())
+// GET /me now returns fullName (see AuthUser) - initials from that, falling
+// back to the email if it's somehow missing (e.g. mid-request on boot).
+const initials = computed(() => {
+  const name = auth.user?.fullName?.trim()
+  if (!name) return (auth.user?.email ?? '?').slice(0, 2).toUpperCase()
+  const parts = name.split(/\s+/)
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? parts[0]?.[1] ?? '')).toUpperCase()
+})
 
 async function handleLogout() {
   isProfileMenuOpen.value = false
@@ -93,7 +99,7 @@ async function handleLogout() {
           {{ initials }}
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block truncate text-sm font-semibold text-white">{{ auth.user?.email ?? 'Unknown user' }}</span>
+          <span class="block truncate text-sm font-semibold text-white">{{ auth.user?.fullName ?? auth.user?.email ?? 'Unknown user' }}</span>
         </span>
         <FontAwesomeIcon :icon="faChevronDown" class="h-3.5 w-3.5 shrink-0 text-white/50" />
       </button>

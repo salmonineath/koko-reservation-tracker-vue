@@ -2,17 +2,9 @@
 // mock layer here can be swapped for real `fetch` calls with zero type churn.
 // See doc/FRONTEND_MOCK_DATA_SCHEMA.md in the backend repo for the source of truth.
 
-export type ReservationSource =
-  | 'FACEBOOK'
-  | 'INSTAGRAM'
-  | 'TIKTOK'
-  | 'PHONE_CALL'
-  | 'WALK_IN'
-  | 'INFLUENCER'
-  | 'RETURNING_CUSTOMER'
-  | 'UNKNOWN'
+export type ReservationSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'TELEGRAM'
 
-export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
+export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED'
 
 export interface Reservation {
   id: number

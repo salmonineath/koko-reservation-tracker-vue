@@ -2,6 +2,7 @@
 import { watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import AppToastContainer from '@/components/common/AppToastContainer.vue'
 
 const auth = useAuthStore()
 const route = useRoute()
@@ -27,4 +28,5 @@ watch(
     <p class="text-sm text-text-muted">Loading…</p>
   </div>
   <RouterView v-else />
+  <AppToastContainer />
 </template>

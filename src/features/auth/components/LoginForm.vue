@@ -1,13 +1,13 @@
 <!-- LoginForm.vue — email/password sign-in. Validation is native HTML5
-     (required + type="email"); server-side failures collapse to one of two
-     generic messages so we never leak backend internals (bad password vs.
-     rate-limited vs. network error all just say "try again"). -->
+     (required + type="email"); success/failure is surfaced via a toast (see
+     authStore.login) rather than an inline message here - one message, one
+     place, no risk of a stale banner still showing under a toast that
+     already superseded it. -->
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { faEnvelope, faLock, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { useAuthStore } from '@/stores/authStore'
-import { ApiError } from '@/services/api'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -16,20 +16,15 @@ const email = ref('')
 const password = ref('')
 const isPasswordVisible = ref(false)
 const isSubmitting = ref(false)
-const errorMessage = ref('')
 
 async function handleSubmit() {
   if (isSubmitting.value) return // belt-and-suspenders against double submit
-  errorMessage.value = ''
   isSubmitting.value = true
   try {
     await auth.login(email.value.trim(), password.value)
     router.replace('/dashboard')
-  } catch (err) {
-    errorMessage.value =
-      err instanceof ApiError && err.status === 401
-        ? 'Invalid email or password'
-        : 'Unable to sign in. Please try again.'
+  } catch {
+    // authStore.login() already pushed an error toast - nothing else to do.
   } finally {
     isSubmitting.value = false
   }
@@ -38,10 +33,6 @@ async function handleSubmit() {
 
 <template>
   <form novalidate @submit.prevent="handleSubmit">
-    <div v-if="errorMessage" class="mb-5 rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3 text-sm text-brand-red">
-      {{ errorMessage }}
-    </div>
-
     <div class="mb-5">
       <label for="email" class="mb-2 block text-sm font-semibold text-text-heading">Email address</label>
       <div class="flex items-center gap-3 rounded-lg border border-surface-border px-4 py-3 focus-within:border-brand-navy">

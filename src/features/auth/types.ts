@@ -1,10 +1,16 @@
 // Mirrors the backend exactly (koko-reservation-trackera-express):
 // src/controllers/auth-controller.ts + src/services/auth-service.ts.
-// No roles/permissions — this is "logged in or not," nothing more.
+// `role` is a plain string, not a union of known values on purpose - the
+// frontend shouldn't need a code change every time the backend adds a role;
+// see ROLE_LABELS in SettingsView.vue for how an unrecognized role degrades
+// (title-cased as-is instead of crashing/showing nothing).
 
 export interface AuthUser {
   id: number
   email: string
+  fullName: string
+  username: string
+  role: string
   createdAt: string
 }
 
