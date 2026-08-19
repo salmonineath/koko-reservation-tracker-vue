@@ -9,7 +9,8 @@ defineProps<{ stat: OverviewStat; comparisonLabel: string }>()
   <div class="rounded-xl border border-surface-border bg-surface-card p-5">
     <p class="text-sm text-text-muted">{{ stat.label }}</p>
     <p class="mt-2 text-3xl font-bold text-text-heading">{{ stat.value }}</p>
-    <p class="mt-2 flex items-center gap-1 text-sm">
+    <p v-if="stat.direction === null" class="mt-2 text-sm text-text-muted">No prior period to compare</p>
+    <p v-else class="mt-2 flex items-center gap-1 text-sm">
       <svg
         viewBox="0 0 10 10"
         class="h-2.5 w-2.5"

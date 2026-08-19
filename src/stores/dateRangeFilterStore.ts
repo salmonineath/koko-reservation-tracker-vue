@@ -25,17 +25,17 @@ function parseDateInput(value: string): Date {
   return new Date(y, m - 1, d)
 }
 
-// The default: 7 days before today, with NO upper bound - reservations are
-// almost always made for upcoming dates, so a default that only looked
-// backward (today-7 -> today) hid every newly-created reservation until you
-// manually widened the range. dateTo: '' means "no filter" (see
-// reservationService.buildQuery - it only sends dateTo if truthy), not some
-// arbitrary far-future date to do date math against.
+// The default: the 1st of the current month, through today - matches
+// shiftPeriodMonths below (stepping to the current month also lands on the
+// 1st). dateTo defaults to today (not '') so the "to" picker always opens
+// with a real day highlighted instead of looking unset/broken - still not
+// some arbitrary far-future bound: reservations created for later today or
+// upcoming dates are exactly what widening the range (or clearing "to"
+// outright) is for.
 function defaultRange(): { dateFrom: string; dateTo: string } {
   const today = new Date()
-  const from = new Date(today)
-  from.setDate(from.getDate() - 7)
-  return { dateFrom: toDateInputValue(from), dateTo: '' }
+  const from = new Date(today.getFullYear(), today.getMonth(), 1)
+  return { dateFrom: toDateInputValue(from), dateTo: toDateInputValue(today) }
 }
 
 export const useDateRangeFilterStore = defineStore('dateRangeFilter', () => {
@@ -62,13 +62,17 @@ export const useDateRangeFilterStore = defineStore('dateRangeFilter', () => {
   // "Period: ‹ August 2026 ›" - steps a full calendar month at a time,
   // anchored on the currently-selected range's start month. No longer
   // clamped to "not past today" - upcoming months are exactly what you'd
-  // want to page into for a reservations app.
+  // want to page into for a reservations app. Stepping back to the *current*
+  // month, though, still caps "to" at today rather than the 31st - the rest
+  // of the month hasn't happened yet, same reasoning as defaultRange above.
   function shiftPeriodMonths(delta: number) {
     const anchor = dateFrom.value ? parseDateInput(dateFrom.value) : new Date()
     const start = new Date(anchor.getFullYear(), anchor.getMonth() + delta, 1)
-    const end = new Date(anchor.getFullYear(), anchor.getMonth() + delta + 1, 0)
+    const monthEnd = new Date(anchor.getFullYear(), anchor.getMonth() + delta + 1, 0)
+    const today = new Date()
+    const isCurrentMonth = start.getFullYear() === today.getFullYear() && start.getMonth() === today.getMonth()
     dateFrom.value = toDateInputValue(start)
-    dateTo.value = toDateInputValue(end)
+    dateTo.value = toDateInputValue(isCurrentMonth ? today : monthEnd)
   }
 
   return { dateFrom, dateTo, setRange, resetToDefault, isAtDefault, shiftPeriodMonths }

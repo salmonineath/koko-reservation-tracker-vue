@@ -8,7 +8,7 @@ import { computed, ref, watch } from 'vue'
 import { faCalendarDays, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { onClickOutside } from '@/utils/onClickOutside'
 
-defineProps<{ placeholder?: string }>()
+const props = defineProps<{ placeholder?: string }>()
 const model = defineModel<string>({ default: '' })
 
 const root = ref<HTMLElement | null>(null)
@@ -140,9 +140,9 @@ function goToday() {
           v-for="day in days"
           :key="day.value"
           type="button"
-          class="mx-auto flex h-7 w-7 items-center justify-center rounded-full text-xs transition-colors"
+          class="mx-auto flex h-7 w-7 items-center justify-center rounded-full text-xs transition-colors hover:bg-surface-page"
           :class="[
-            !day.inMonth ? 'text-text-muted/40 hover:bg-surface-page' : 'text-text-body hover:bg-surface-page',
+            day.inMonth ? 'text-text-body' : 'text-text-muted/40',
             day.value === model && 'bg-brand-red font-semibold text-white hover:bg-brand-red',
             day.isToday && day.value !== model && 'font-semibold text-brand-navy ring-1 ring-inset ring-brand-navy',
           ]"

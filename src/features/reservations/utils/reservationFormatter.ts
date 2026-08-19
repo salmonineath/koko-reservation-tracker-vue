@@ -10,7 +10,6 @@ export const SOURCE_LABELS: Record<ReservationSource, string> = {
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',
-  COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
 }
 
@@ -18,7 +17,6 @@ export const STATUS_LABELS: Record<ReservationStatus, string> = {
 export const STATUS_TONES: Record<ReservationStatus, 'success' | 'warning' | 'danger' | 'info'> = {
   PENDING: 'warning',
   CONFIRMED: 'success',
-  COMPLETED: 'info',
   CANCELLED: 'danger',
 }
 

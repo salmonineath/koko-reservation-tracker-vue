@@ -24,10 +24,11 @@ const router = useRouter()
 const dateRange = useDateRangeFilterStore()
 const filters = reactive<ReservationFiltersValue>({ search: '', source: '', status: '' })
 const page = ref(1)
-const limit = ref(12)
+// Fixed - the per-page picker was removed from the table (ReservationTable.vue).
+const PAGE_SIZE = 12
 
 const reservations = ref<Reservation[]>([])
-const pagination = ref<Pagination>({ page: 1, limit: 12, total: 0, totalPages: 1 })
+const pagination = ref<Pagination>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 })
 const isLoading = ref(true)
 const loadError = ref('')
 
@@ -46,7 +47,7 @@ async function load() {
       dateFrom: dateRange.dateFrom || undefined,
       dateTo: dateRange.dateTo || undefined,
       page: page.value,
-      limit: limit.value,
+      limit: PAGE_SIZE,
     })
     reservations.value = result.data
     pagination.value = result.pagination
@@ -57,8 +58,8 @@ async function load() {
   }
 }
 
-// Filter/limit changes reset to page 1; page changes just reload.
-watch([() => filters.source, () => filters.status, () => dateRange.dateFrom, () => dateRange.dateTo, limit], () => {
+// Filter changes reset to page 1; page changes just reload.
+watch([() => filters.source, () => filters.status, () => dateRange.dateFrom, () => dateRange.dateTo], () => {
   page.value = 1
   load()
 })
@@ -82,9 +83,9 @@ watch(
 // are exactly what the breakdown cards summarize, so filtering by status
 // would defeat the point of a "how many are Confirmed/Pending/Cancelled"
 // card. Real numbers throughout: `total`/`confirmed`/`pending`/`cancelled`
-// are cheap count-only requests (see countReservations); `totalGuests` has
-// no aggregate endpoint at all, so it's the one case that needs an actual
-// row fetch (capped at `total`, so it never asks for more than exists).
+// are cheap count-only requests (see countReservations) - no full row fetch
+// needed now that Total Guests (the one card that couldn't be a count-only
+// request) has been removed.
 const stats = ref<ReservationStats | null>(null)
 const dateRangeLabel = computed(() => {
   if (dateRange.dateFrom && dateRange.dateTo) {
@@ -104,14 +105,7 @@ async function loadStats() {
       countReservations({ ...dateRangeQuery, status: 'PENDING' }),
       countReservations({ ...dateRangeQuery, status: 'CANCELLED' }),
     ])
-    const totalGuests =
-      total === 0
-        ? 0
-        : (await listReservations({ ...dateRangeQuery, page: 1, limit: total })).data.reduce(
-            (sum, r) => sum + r.guests,
-            0,
-          )
-    stats.value = { total, confirmed, pending, cancelled, totalGuests }
+    stats.value = { total, confirmed, pending, cancelled }
   } catch {
     // Non-critical decoration above the table - fail quietly and just leave
     // the cards showing "—" rather than piling another error banner on top
@@ -187,7 +181,7 @@ async function confirmDelete() {
         <div class="flex items-center gap-3">
           <AppButton variant="secondary" :loading="isExporting" :disabled="isExporting" @click="handleExport">
             <FontAwesomeIcon :icon="faDownload" class="h-3.5 w-3.5" />
-            {{ isExporting ? 'Exporting…' : 'Export' }}
+            {{ isExporting ? 'Exporting…' : 'Export as CSV' }}
           </AppButton>
           <AppButton @click="router.push('/reservations/new')">
             <FontAwesomeIcon :icon="faPlus" class="h-3.5 w-3.5" />
@@ -198,6 +192,9 @@ async function confirmDelete() {
     </AppHeader>
 
     <main class="min-h-0 flex-1 space-y-4 overflow-y-auto p-8">
+
+      <ReservationStatsCards :stats="stats" :date-range-label="dateRangeLabel" />
+      
       <div class="rounded-xl border border-surface-border bg-surface-card p-4">
         <ReservationFilters v-model="filters" />
       </div>
@@ -205,8 +202,6 @@ async function confirmDelete() {
       <div v-if="exportError" class="rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3 text-sm text-brand-red">
         {{ exportError }}
       </div>
-
-      <ReservationStatsCards :stats="stats" :date-range-label="dateRangeLabel" />
 
       <div v-if="loadError" class="rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3 text-sm text-brand-red">
         {{ loadError }}
@@ -218,7 +213,6 @@ async function confirmDelete() {
           :pagination="pagination"
           :is-loading="isLoading"
           @page-change="page = $event"
-          @limit-change="limit = $event"
           @delete="requestDelete"
         />
       </div>

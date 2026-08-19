@@ -3,10 +3,11 @@
 
      Backend reality check: GET /me now returns fullName/username/role too
      (see AuthUser) - Full Name/Username/Role/Email/Member Since are all
-     real. There's still no active-status column, so "Active" stays
-     hardcoded (this app has no concept of a deactivated account yet), and
-     the whole Account Preferences card is still a static, non-functional
-     mock — nothing in it is saved anywhere. -->
+     real, and Full Name/Username/Email are now editable via Edit Profile
+     (PATCH /users/:id - see profileService). There's still no active-status
+     column, so "Active" stays hardcoded (this app has no concept of a
+     deactivated account yet), and the whole Account Preferences card is
+     still a static, non-functional mock — nothing in it is saved anywhere. -->
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import {
@@ -18,18 +19,23 @@ import {
   faCalendarDays,
   faShieldHalved,
   faLock,
-  faGear,
+  // faGear,
+  faPen,
 } from '@fortawesome/free-solid-svg-icons'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppInput from '@/components/common/AppInput.vue'
-import AppSelect from '@/components/common/AppSelect.vue'
+// import AppSelect from '@/components/common/AppSelect.vue'
 import AppButton from '@/components/common/AppButton.vue'
-import AppToggle from '@/components/common/AppToggle.vue'
+// import AppToggle from '@/components/common/AppToggle.vue'
+import AppModal from '@/components/common/AppModal.vue'
 import StatusBadge from '@/components/common/StatusBadge.vue'
 import { useAuthStore } from '@/stores/authStore'
+import { useToastStore } from '@/stores/toastStore'
+import { updateProfile } from '../services/profileService'
 import { ApiError } from '@/services/api'
 
 const auth = useAuthStore()
+const toast = useToastStore()
 
 // Known roles get a friendly label; anything else (a role added on the
 // backend before the frontend catches up) still shows *something*
@@ -52,6 +58,63 @@ const memberSince = computed(() => {
     new Date(auth.user.createdAt),
   )
 })
+
+// ---- Edit profile ----
+// Full Name/Username/Email only - Role and Member Since are system-derived,
+// not something the account holder edits here, and password has its own
+// dedicated form below.
+
+const isEditProfileOpen = ref(false)
+const profileForm = reactive({ fullName: '', username: '', email: '' })
+const profileErrors = ref<Record<string, string>>({})
+const profileServerError = ref('')
+const isSavingProfile = ref(false)
+
+function openEditProfile() {
+  profileForm.fullName = auth.user?.fullName ?? ''
+  profileForm.username = auth.user?.username ?? ''
+  profileForm.email = auth.user?.email ?? ''
+  profileErrors.value = {}
+  profileServerError.value = ''
+  isEditProfileOpen.value = true
+}
+
+function validateProfile(): boolean {
+  const next: Record<string, string> = {}
+  if (!profileForm.fullName.trim()) next.fullName = 'Full name is required'
+  if (!profileForm.username.trim()) next.username = 'Username is required'
+  if (!profileForm.email.trim()) next.email = 'Email is required'
+  else if (!/^\S+@\S+\.\S+$/.test(profileForm.email.trim())) next.email = 'Enter a valid email address'
+  profileErrors.value = next
+  return Object.keys(next).length === 0
+}
+
+async function submitProfile() {
+  if (!auth.user) return
+  profileServerError.value = ''
+  if (!validateProfile()) return
+
+  isSavingProfile.value = true
+  try {
+    const updated = await updateProfile(auth.user.id, {
+      fullName: profileForm.fullName.trim(),
+      username: profileForm.username.trim(),
+      email: profileForm.email.trim(),
+    })
+    auth.setUser(updated)
+    isEditProfileOpen.value = false
+    toast.success('Profile updated')
+  } catch (err) {
+    // The backend responds 409 with a field-naming message (e.g. "email
+    // already in use") for a duplicate email/username - shown as a banner
+    // rather than guessed-at per-field, since the response doesn't say
+    // which input to attach it to beyond that message text.
+    profileServerError.value =
+      err instanceof ApiError ? err.message : 'Unable to save your profile. Please try again.'
+  } finally {
+    isSavingProfile.value = false
+  }
+}
 
 // ---- Change password ----
 
@@ -110,11 +173,11 @@ async function handleSubmit() {
 
 // ---- Account preferences (static mock — see file header) ----
 
-const LANGUAGE_OPTIONS = [{ value: 'en', label: 'English' }]
-const TIMEZONE_OPTIONS = [{ value: 'Asia/Phnom_Penh', label: '(UTC+07:00) Phnom Penh' }]
-const language = ref('en')
-const timezone = ref('Asia/Phnom_Penh')
-const emailNotifications = ref(true)
+// const LANGUAGE_OPTIONS = [{ value: 'en', label: 'English' }]
+// const TIMEZONE_OPTIONS = [{ value: 'Asia/Phnom_Penh', label: '(UTC+07:00) Phnom Penh' }]
+// const language = ref('en')
+// const timezone = ref('Asia/Phnom_Penh')
+// const emailNotifications = ref(true)
 </script>
 
 <template>
@@ -178,6 +241,13 @@ const emailNotifications = ref(true)
               <dd class="text-sm font-medium text-text-heading">{{ roleLabel(auth.user?.role ?? '') }}</dd>
             </div>
           </dl>
+
+          <div class="mt-6 flex justify-end">
+            <AppButton variant="secondary" type="button" @click="openEditProfile">
+              <FontAwesomeIcon :icon="faPen" class="h-3.5 w-3.5" />
+              Edit Profile
+            </AppButton>
+          </div>
         </section>
 
         <!-- Change Password -->
@@ -268,7 +338,7 @@ const emailNotifications = ref(true)
       </div>
 
       <!-- Account Preferences — static mock, see file header. -->
-      <section class="mt-6 rounded-xl border border-surface-border bg-surface-card p-6">
+      <!-- <section class="mt-6 rounded-xl border border-surface-border bg-surface-card p-6">
         <h2 class="mb-5 flex items-center gap-2 font-semibold text-text-heading">
           <FontAwesomeIcon :icon="faGear" class="h-4 w-4 text-text-muted" />
           Account Preferences
@@ -284,7 +354,60 @@ const emailNotifications = ref(true)
             <AppToggle v-model="emailNotifications" />
           </div>
         </div>
-      </section>
+      </section> -->
+      <!-- <section class="mt-6 rounded-xl border border-surface-border bg-surface-card p-6">
+        <h2 class="mb-5 flex items-center gap-2 font-semibold text-text-heading">
+          <FontAwesomeIcon :icon="faGear" class="h-4 w-4 text-text-muted" />
+          Theme
+        </h2>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3 sm:items-end">
+          <p>Light</p>
+          <AppToggle v-model="emailNotifications" />
+        </div>
+      </section> -->
     </main>
+
+    <AppModal v-model="isEditProfileOpen" title="Edit Profile">
+      <form novalidate class="space-y-5" @submit.prevent="submitProfile">
+        <div v-if="profileServerError" class="rounded-lg border border-brand-red/30 bg-brand-red/5 px-4 py-3 text-sm text-brand-red">
+          {{ profileServerError }}
+        </div>
+
+        <AppInput
+          v-model="profileForm.fullName"
+          label="Full Name"
+          required
+          placeholder="Enter your full name"
+          :error="profileErrors.fullName"
+          :disabled="isSavingProfile"
+        />
+        <AppInput
+          v-model="profileForm.username"
+          label="Username"
+          required
+          placeholder="Enter your username"
+          :error="profileErrors.username"
+          :disabled="isSavingProfile"
+        />
+        <AppInput
+          v-model="profileForm.email"
+          type="email"
+          label="Email"
+          required
+          placeholder="Enter your email"
+          :error="profileErrors.email"
+          :disabled="isSavingProfile"
+        />
+
+        <div class="flex justify-end gap-3">
+          <AppButton variant="secondary" type="button" :disabled="isSavingProfile" @click="isEditProfileOpen = false">
+            Cancel
+          </AppButton>
+          <AppButton type="submit" :loading="isSavingProfile" :disabled="isSavingProfile">
+            {{ isSavingProfile ? 'Saving…' : 'Save Changes' }}
+          </AppButton>
+        </div>
+      </form>
+    </AppModal>
   </div>
 </template>

@@ -6,7 +6,15 @@ import type { DonutSegment } from '../types'
 
 const props = defineProps<{ title: string; segments: DonutSegment[] }>()
 
+// A conic-gradient built entirely from 0%-0% stops (every segment's count is
+// zero for the period) renders as an invisible/blank circle, not an empty
+// ring - which reads as "this is broken," not "the API call succeeded and
+// there's just nothing here." A flat neutral ring says the latter.
+const hasData = computed(() => props.segments.some((segment) => segment.count > 0))
+
 const gradient = computed(() => {
+  if (!hasData.value) return 'conic-gradient(var(--color-chart-mist) 0% 100%)'
+
   let cursor = 0
   const stops = props.segments.map((segment) => {
     const start = cursor

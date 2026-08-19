@@ -1,4 +1,4 @@
-<!-- ReservationStatsCards.vue — the 5 KPI tiles above the reservations table.
+<!-- ReservationStatsCards.vue — the 4 KPI tiles above the reservations table.
      All real numbers from the API (see ReservationListView's loadStats),
      scoped to the current date-range filter only — not source/status/search,
      since those are exactly what the breakdown cards summarize. Colors reuse
@@ -12,7 +12,6 @@ export interface ReservationStats {
   confirmed: number
   pending: number
   cancelled: number
-  totalGuests: number
 }
 
 const props = defineProps<{
@@ -32,7 +31,7 @@ const cancelledPercent = computed(() => percentOfTotal(props.stats?.cancelled))
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
     <div class="rounded-xl border border-surface-border bg-surface-card p-5">
       <p class="text-sm text-text-muted">Total Reservations</p>
       <p class="mt-2 text-3xl font-bold text-text-heading">{{ stats?.total ?? '—' }}</p>
@@ -71,12 +70,6 @@ const cancelledPercent = computed(() => percentOfTotal(props.stats?.cancelled))
         <span class="font-semibold text-trend-down">{{ cancelledPercent }}%</span>
         <span class="text-text-muted">of total</span>
       </p>
-    </div>
-
-    <div class="rounded-xl border border-surface-border bg-surface-card p-5">
-      <p class="text-sm text-text-muted">Total Guests</p>
-      <p class="mt-2 text-3xl font-bold text-text-heading">{{ stats?.totalGuests ?? '—' }}</p>
-      <p class="mt-2 text-xs text-text-muted">Across all reservations</p>
     </div>
   </div>
 </template>
