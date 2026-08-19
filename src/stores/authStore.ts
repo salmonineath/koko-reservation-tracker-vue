@@ -111,5 +111,14 @@ export const useAuthStore = defineStore('auth', () => {
   // handles the redirect, so this store doesn't need to know about routing.
   setOnSessionExpired(clearSession)
 
-  return { user, authStatus, login, logout, changePassword, checkSession, ensureInitialized }
+  // Called after a successful profile edit (see SettingsView) so the rest of
+  // the app (sidebar avatar, Profile Summary, anywhere else that reads
+  // auth.user) reflects the change immediately, without needing a full
+  // re-login or a redundant GET /me just to re-sync what the PATCH response
+  // already gave us.
+  function setUser(updated: AuthUser) {
+    user.value = updated
+  }
+
+  return { user, authStatus, login, logout, changePassword, checkSession, ensureInitialized, setUser }
 })

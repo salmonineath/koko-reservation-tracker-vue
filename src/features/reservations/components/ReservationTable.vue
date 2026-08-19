@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { faEye, faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons'
-import AppSelect from '@/components/common/AppSelect.vue'
 import ReservationStatusBadge from './ReservationStatusBadge.vue'
 import type { Pagination, Reservation } from '../types'
 import { SOURCE_LABELS, formatDate, formatDateTime, formatTime } from '../utils/reservationFormatter'
@@ -18,21 +17,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'page-change': [page: number]
-  'limit-change': [limit: number]
   delete: [reservation: Reservation]
 }>()
-
-const LIMIT_OPTIONS = [
-  { value: '12', label: '12 per page' },
-  { value: '24', label: '24 per page' },
-  { value: '48', label: '48 per page' },
-  { value: '100', label: '100 per page' },
-]
-
-const limitModel = computed({
-  get: () => String(props.pagination.limit),
-  set: (v: string) => emit('limit-change', Number(v)),
-})
 
 const rangeStart = computed(() =>
   props.pagination.total === 0 ? 0 : (props.pagination.page - 1) * props.pagination.limit + 1,
@@ -102,37 +88,34 @@ const pageNumbers = computed(() => {
     <p class="text-sm text-text-muted">
       Showing {{ rangeStart }} to {{ rangeEnd }} of {{ pagination.total }} reservations
     </p>
-    <div class="flex items-center gap-3">
-      <AppSelect v-model="limitModel" :options="LIMIT_OPTIONS" />
-      <div class="flex items-center gap-1">
+    <div class="flex items-center gap-1">
+      <button
+        type="button"
+        class="rounded-lg border border-surface-border px-2.5 py-1.5 text-text-muted hover:bg-surface-page disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="pagination.page <= 1"
+        @click="emit('page-change', pagination.page - 1)"
+      >
+        ‹
+      </button>
+      <template v-for="(p, i) in pageNumbers" :key="p">
+        <span v-if="i > 0 && p - pageNumbers[i - 1] > 1" class="px-1 text-text-muted">…</span>
         <button
           type="button"
-          class="rounded-lg border border-surface-border px-2.5 py-1.5 text-text-muted hover:bg-surface-page disabled:cursor-not-allowed disabled:opacity-40"
-          :disabled="pagination.page <= 1"
-          @click="emit('page-change', pagination.page - 1)"
+          class="h-8 w-8 rounded-lg text-sm font-medium"
+          :class="p === pagination.page ? 'bg-brand-red text-white' : 'text-text-body hover:bg-surface-page'"
+          @click="emit('page-change', p)"
         >
-          ‹
+          {{ p }}
         </button>
-        <template v-for="(p, i) in pageNumbers" :key="p">
-          <span v-if="i > 0 && p - pageNumbers[i - 1] > 1" class="px-1 text-text-muted">…</span>
-          <button
-            type="button"
-            class="h-8 w-8 rounded-lg text-sm font-medium"
-            :class="p === pagination.page ? 'bg-brand-red text-white' : 'text-text-body hover:bg-surface-page'"
-            @click="emit('page-change', p)"
-          >
-            {{ p }}
-          </button>
-        </template>
-        <button
-          type="button"
-          class="rounded-lg border border-surface-border px-2.5 py-1.5 text-text-muted hover:bg-surface-page disabled:cursor-not-allowed disabled:opacity-40"
-          :disabled="pagination.page >= pagination.totalPages"
-          @click="emit('page-change', pagination.page + 1)"
-        >
-          ›
-        </button>
-      </div>
+      </template>
+      <button
+        type="button"
+        class="rounded-lg border border-surface-border px-2.5 py-1.5 text-text-muted hover:bg-surface-page disabled:cursor-not-allowed disabled:opacity-40"
+        :disabled="pagination.page >= pagination.totalPages"
+        @click="emit('page-change', pagination.page + 1)"
+      >
+        ›
+      </button>
     </div>
   </div>
 </template>
