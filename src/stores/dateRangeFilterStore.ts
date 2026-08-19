@@ -54,6 +54,14 @@ export const useDateRangeFilterStore = defineStore('dateRangeFilter', () => {
     dateTo.value = to
   }
 
+  // Both blank means "no date filter at all" - reservationService/
+  // dashboardService both treat an empty string as "omit this param", so
+  // this is what backs the Reservations screen's "All Reservations" button.
+  function clearRange() {
+    dateFrom.value = ''
+    dateTo.value = ''
+  }
+
   function isAtDefault(): boolean {
     const { dateFrom: from, dateTo: to } = defaultRange()
     return dateFrom.value === from && dateTo.value === to
@@ -75,5 +83,5 @@ export const useDateRangeFilterStore = defineStore('dateRangeFilter', () => {
     dateTo.value = toDateInputValue(isCurrentMonth ? today : monthEnd)
   }
 
-  return { dateFrom, dateTo, setRange, resetToDefault, isAtDefault, shiftPeriodMonths }
+  return { dateFrom, dateTo, setRange, resetToDefault, clearRange, isAtDefault, shiftPeriodMonths }
 })

@@ -5,9 +5,13 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import AppInput from '@/components/common/AppInput.vue'
 import AppSelect from '@/components/common/AppSelect.vue'
+import AppButton from '@/components/common/AppButton.vue'
 import DateRangeFilter from '@/components/common/DateRangeFilter.vue'
+import { useDateRangeFilterStore } from '@/stores/dateRangeFilterStore'
 import type { ReservationSource, ReservationStatus } from '../types'
 import { SOURCE_LABELS, STATUS_LABELS } from '../utils/reservationFormatter'
+
+const dateRange = useDateRangeFilterStore()
 
 export interface ReservationFiltersValue {
   search: string
@@ -45,6 +49,13 @@ const STATUS_OPTIONS = [
     </div>
 
     <DateRangeFilter />
+
+    <!-- Bypasses the date-range filter entirely (clears dateFrom/dateTo on
+         the shared store, so GET /reservations is called with no date
+         params at all - see reservationService/reservation.schema.ts) -
+         rather than a variant of Reset, which still re-applies the
+         current-month default range. -->
+    <AppButton variant="secondary" type="button" @click="dateRange.clearRange()">All Reservations</AppButton>
 
     <AppSelect v-model="model.source" class="w-40" :options="SOURCE_OPTIONS" />
     <AppSelect v-model="model.status" class="w-40" :options="STATUS_OPTIONS" />
