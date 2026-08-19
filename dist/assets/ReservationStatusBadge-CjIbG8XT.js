@@ -1,0 +1,1 @@
+import{D as e,Z as t,g as n,u as r}from"./api-SVqoUila.js";import{n as i,r as a}from"./reservationFormatter-CfFfASd0.js";import{t as o}from"./StatusBadge-BkU53p_1.js";var s=n({__name:`ReservationStatusBadge`,props:{status:{}},setup(n){return(s,c)=>(e(),r(o,{label:t(i)[n.status],tone:t(a)[n.status]},null,8,[`label`,`tone`]))}});export{s as t};
