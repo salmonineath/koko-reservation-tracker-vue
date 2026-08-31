@@ -3,19 +3,15 @@
 // user.routes.ts) targeted at the caller's own id. Every account can edit
 // every account today (no permission model yet), so nothing on the backend
 // distinguishes "editing yourself" from "editing anyone" - this wrapper is
-// just the frontend's own scoping of that.
-import { apiRequest } from '@/services/api'
+// just the frontend's own scoping of that, delegating to the same
+// features/users/service/userService.ts the Team section (also on this
+// page) uses so there's exactly one place that calls PATCH /users/:id.
+import { updateUser } from '@/features/users/service/userService'
+import type { UpdateUserInput } from '@/features/users/types'
 import type { AuthUser } from '@/features/auth/types'
 
-export interface UpdateProfileInput {
-  fullName?: string
-  username?: string
-  email?: string
-}
+export type UpdateProfileInput = Pick<UpdateUserInput, 'fullName' | 'email'>
 
 export function updateProfile(id: number, input: UpdateProfileInput): Promise<AuthUser> {
-  return apiRequest<AuthUser>(`/users/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(input),
-  })
+  return updateUser(id, input)
 }

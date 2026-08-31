@@ -9,7 +9,6 @@ export interface AuthUser {
   id: number
   email: string
   fullName: string
-  username: string
   role: string
   createdAt: string
 }
