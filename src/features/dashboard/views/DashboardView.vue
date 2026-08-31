@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
+import AppPageTitle from '@/components/common/AppPageTitle.vue'
 import DateRangeFilter from '@/components/common/DateRangeFilter.vue'
 import DashboardCard from '../components/DashboardCard.vue'
 import ReservationSummary from '../components/ReservationSummary.vue'
@@ -87,7 +88,6 @@ const SOURCE_COLORS: Record<ReservationSource, string> = {
   FACEBOOK: 'var(--color-chart-navy)',
   INSTAGRAM: 'var(--color-chart-red)',
   TIKTOK: 'var(--color-chart-slate)',
-  TELEGRAM: 'var(--color-chart-gray)',
 }
 const STATUS_COLORS: Record<ReservationStatus, string> = {
   CONFIRMED: 'var(--color-chart-navy)',
@@ -165,10 +165,7 @@ const pendingStat = computed(() =>
            byStatus, all computed with safe placeholder defaults above) wait
            for the data. No more blanking the whole page behind "Loading…" on
            every date-range change, just the numbers updating in place. -->
-      <h2 class="mb-4 flex items-center gap-2 text-lg font-bold text-text-heading">
-        Overview
-        <span v-if="isLoading" class="text-xs font-normal text-text-muted">Updating…</span>
-      </h2>
+      <AppPageTitle title="Dashboard" />
 
       <section>
         <div class="p-4 border-black bg-white shadow-md rounded-lg">

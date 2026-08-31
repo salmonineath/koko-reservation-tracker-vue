@@ -25,7 +25,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: faHouse },
   { to: '/reservations', label: 'Reservations', icon: faCalendarDays },
-  { to: '/settings', label: 'System Setting', icon: faGear },
+  { to: '/settings', label: 'System Settings', icon: faGear },
 ]
 
 const route = useRoute()

@@ -2,7 +2,7 @@
 // mock layer here can be swapped for real `fetch` calls with zero type churn.
 // See doc/FRONTEND_MOCK_DATA_SCHEMA.md in the backend repo for the source of truth.
 
-export type ReservationSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK' | 'TELEGRAM'
+export type ReservationSource = 'FACEBOOK' | 'INSTAGRAM' | 'TIKTOK'
 
 export type ReservationStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED'
 

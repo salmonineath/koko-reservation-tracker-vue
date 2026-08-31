@@ -5,6 +5,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { faPlus, faDownload } from '@fortawesome/free-solid-svg-icons'
 import AppHeader from '@/components/layout/AppHeader.vue'
+import AppPageTitle from '@/components/common/AppPageTitle.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import AppModal from '@/components/common/AppModal.vue'
 import ReservationFilters, { type ReservationFiltersValue } from '../components/ReservationFilters.vue'
@@ -192,6 +193,8 @@ async function confirmDelete() {
     </AppHeader>
 
     <main class="min-h-0 flex-1 space-y-4 overflow-y-auto p-8">
+
+      <AppPageTitle title="Reservations" />
 
       <ReservationStatsCards :stats="stats" :date-range-label="dateRangeLabel" />
       

@@ -4,7 +4,6 @@ export const SOURCE_LABELS: Record<ReservationSource, string> = {
   FACEBOOK: 'Facebook',
   INSTAGRAM: 'Instagram',
   TIKTOK: 'TikTok',
-  TELEGRAM: 'Telegram',
 }
 
 export const STATUS_LABELS: Record<ReservationStatus, string> = {

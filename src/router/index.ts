@@ -53,6 +53,9 @@ const router = createRouter({
           component: () => import('@/features/reservations/views/ReservationEditView.vue'),
         },
         {
+          // Team management (invite/edit/remove) lives inline at the bottom
+          // of this page — see features/users's service/components, reused
+          // here rather than on a separate route.
           path: 'settings',
           name: 'settings',
           component: () => import('@/features/settings/views/SettingsView.vue'),
